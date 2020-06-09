@@ -28,7 +28,28 @@ type DHKey struct {
 	group *DHGroup
 }
 
-func (self *DHKey) Bytes() []byte {
+func (self *DHKey) PrivateKeyString() string {
+	if self.x == nil {
+		return ""
+	}
+	return self.x.String()
+}
+
+func (self *DHKey) PrivateKeyBytes() []byte {
+	if self.x == nil {
+		return nil
+	}
+	if self.group != nil {
+		// len = ceil(bitLen(y) / 8)
+		blen := (self.group.p.BitLen() + 7) / 8
+		ret := make([]byte, blen)
+		copyWithLeftPad(ret, self.x.Bytes())
+		return ret
+	}
+	return self.x.Bytes()
+}
+
+func (self *DHKey) PublicKeyBytes() []byte {
 	if self.y == nil {
 		return nil
 	}
@@ -42,13 +63,12 @@ func (self *DHKey) Bytes() []byte {
 	return self.y.Bytes()
 }
 
-func (self *DHKey) String() string {
+func (self *DHKey) PublicKeyString() string {
 	if self.y == nil {
 		return ""
 	}
 	return self.y.String()
 }
-
 func (self *DHKey) IsPrivateKey() bool {
 	return self.x != nil
 }
